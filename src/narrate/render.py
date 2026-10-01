@@ -28,12 +28,22 @@ def _time_window(facts: Dict) -> str:
     return f"{span['start']} to {span['end']}"
 
 
+def _lat(lat: float) -> str:
+    """Format a latitude with the correct hemisphere suffix."""
+    return f"{abs(lat):.2f}°{'N' if lat >= 0 else 'S'}"
+
+
+def _lon(lon: float) -> str:
+    """Format a longitude with the correct hemisphere suffix."""
+    return f"{abs(lon):.2f}°{'E' if lon >= 0 else 'W'}"
+
+
 def _peak_clause(facts: Dict) -> str:
     peak = facts["peak"]
     subj = _subject(facts["field_kind"])
     return (f"At its strongest, {subj} there ran at "
             f"{_kt(peak['value_knots'])} knots, "
-            f"at {peak['lat']:.2f}°N, {peak['lon']:.2f}°E "
+            f"at {_lat(peak['lat'])}, {_lon(peak['lon'])} "
             f"on {peak['time']}.")
 
 
@@ -109,7 +119,7 @@ def _render_email(facts: Dict) -> str:
         f"({span['n_timesteps']} {span['cadence']} samples): "
         f"averaged {_kt(facts['mean_speed_knots'])} knots, "
         f"peaked at {_kt(peak['value_knots'])} knots "
-        f"({peak['lat']:.2f}°N, {peak['lon']:.2f}°E, {peak['time']}).",
+        f"({_lat(peak['lat'])}, {_lon(peak['lon'])}, {peak['time']}).",
         direction_bit + ".",
     ]
     temp = _temperature_clause(facts)

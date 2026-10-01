@@ -36,7 +36,7 @@ def test_instagram_contains_peak_knots():
 def test_instagram_contains_peak_location_and_time():
     caption = render_caption(_facts())
     assert "42.00°N" in caption
-    assert "-7.00°E" in caption
+    assert "7.00°W" in caption
     assert "2026-09-29T00:00:00Z" in caption
 
 
@@ -110,3 +110,12 @@ def test_no_dominant_direction_renders_honestly():
     }
     caption = render_caption(facts)
     assert "No dominant direction" in caption
+
+
+def test_peak_location_uses_hemisphere_suffixes():
+    """Regression: negative lon must render as °W, not °E."""
+    facts = _facts()
+    for style in ("instagram", "email"):
+        caption = render_caption(facts, style=style)
+        assert "°W" in caption
+        assert "°E" not in caption

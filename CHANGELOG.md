@@ -1,6 +1,24 @@
 # Changelog
 
-All notable changes to survey-narrate. Follows [Semantic Versioning](https://semver.org/).
+All notable changes to survey-narrate. Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/).
+
+## [0.2.0] - 2026-10-04
+
+### Added
+
+- `headline_beats(facts, *, max_beats=4) -> list[tuple[float, str]]`:
+  deterministic draft headline text swaps for an animated reel (the
+  mapped.earth "Where Italy lives" pattern), consuming only the
+  `story_facts` dict. Opening beat at 0.0 (region + subject framing),
+  peak beat at the fraction where `peak.time` falls inside `time_span`
+  (0.5 fallback; knots and hemisphere-correct lat/lon shared with
+  `render_caption`), closing beat at 0.9 (mean speed / dominant
+  direction), and an optional temperature-range mid beat at 0.65 only
+  when `max_beats >= 4` and the range is meaningful. Drafts for human
+  approval/editing; fractions are approximate and lines only restate
+  computed facts — no causal claims.
+- Exported `headline_beats` from `narrate` alongside `story_facts`
+  and `render_caption`; 19 new tests in `tests/test_beats.py`.
 
 ## [0.1.0] - 2026-10-01
 

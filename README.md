@@ -13,7 +13,7 @@ engine — **zero UI-framework imports anywhere**.
 ## Install
 
 ```bash
-pip install git+https://github.com/crieck2010/survey-narrate@v0.1.0
+pip install git+https://github.com/crieck2010/survey-narrate@v0.2.0
 # or from a local clone
 pip install -e .
 ```
@@ -21,7 +21,7 @@ pip install -e .
 ## Usage
 
 ```python
-from narrate import story_facts, render_caption
+from narrate import headline_beats, render_caption, story_facts
 
 # field: a GFS-wind-shaped dict/object (grids["u10"]/grids["v10"])
 #        or a CurrentField-shaped dict/object (u/v), times/lats/lons
@@ -34,6 +34,11 @@ print(render_caption(facts, style="instagram"))
 # Air temperatures ranged from 50.0 to 50.0 °F.
 
 print(render_caption(facts, style="email"))   # one compact paragraph
+
+print(headline_beats(facts))
+# [(0.0, 'the Tacoma Narrows — the wind in motion'),
+#  (0.9, 'Average: 6 knots, mostly easterly'),
+#  (1.0, 'Peak: 19 knots at 42.00°N, 7.00°W')]
 ```
 
 ## API reference
@@ -93,6 +98,46 @@ computed, never editorialized ("nearly", "a whopping").
 - `style="email"`: one compact paragraph for a daily-reel email body.
 - Unknown style → `ValueError`.
 
+### `headline_beats(facts, *, max_beats=4) -> list[tuple[float, str]]`
+
+Drafts headline text swaps for an animated reel — the mapped.earth
+"Where Italy lives" pattern, where the title changes at story moments.
+Consumes **only** the dict returned by `story_facts` (never the raw
+field) and returns `(t_fraction, text)` pairs sorted ascending,
+fractions in [0.0, 1.0], at most `max_beats` entries
+(`max_beats` must be >= 1; `max_beats=1` returns just the opening).
+
+Beat design (deterministic — no RNG, no AI):
+
+1. **Opening at 0.0** — region + subject framing, e.g.
+   `"North America — the wind in motion"` (currents: `"the surface
+   water"`). Uses `region_name` verbatim when present; falls back to
+   the bare subject (`"The wind in motion"`) when empty.
+2. **Peak** at the fraction where `peak.time` falls inside
+   `time_span`, computed from the ISO timestamps (0.5 when that cannot
+   be derived, e.g. a single timestep): `"Peak: 19 knots at 42.00°N,
+   7.00°W"`. Speed is in knots for both wind and currents — the same
+   unit `render_caption` uses — and lat/lon use the shared
+   hemisphere-correct formatting.
+3. **Closing at 0.9** — a synthesis line restating the mean speed and,
+   when present, the dominant direction, e.g. `"Average: 6 knots,
+   mostly easterly"`.
+4. **Optional mid beat at 0.65**, only when `max_beats >= 4` and the
+   facts carry a meaningful temperature range (>= 1.0 in the reported
+   unit). Never padded with filler; fewer beats is fine.
+
+**These are DRAFTS for human approval/editing** — review and edit the
+text before putting it on a reel. Fractions are approximate placements
+along the reel timeline, not frame-exact cues. The peak and closing
+lines only restate computed facts (peak speed/location, mean speed,
+dominant direction, temperature range); no causal claims are made.
+
+Degenerate inputs still yield valid beats: no region name, no
+temperature, or a single timestep returns at least the opening beat.
+A facts dict missing required structure (`field_kind`, `peak`,
+`time_span`, `mean_speed_knots`) raises a clear `ValueError`, as does
+`max_beats < 1`.
+
 ### Helpers
 
 - `normalize_field(field, temperature_unit=None) -> NormalizedField`
@@ -116,6 +161,9 @@ computed, never editorialized ("nearly", "a whopping").
   gappy series report `"irregular"`.
 - Temperature min/max reflect only the cells valid for u/v; if the
   temperature grid has its own gaps over those cells they are excluded.
+- **Headline beats are drafts, not finished titles.** `headline_beats`
+  fractions are approximate placements, and its lines only restate
+  computed facts — a human still approves and edits the wording.
 
 ## Testing
 
@@ -124,4 +172,4 @@ pip install -e ".[test]"
 pytest -q
 ```
 
-38 tests, all synthetic fields, zero network access.
+64 tests, all synthetic fields, zero network access.

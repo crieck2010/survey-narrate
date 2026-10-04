@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "survey-narrate"
-version = "0.1.1"
+version = "0.2.0"
 description = "Data-rich narrative captions for wind/current fields: story facts + mapped.earth-style captions. Pure-Python engine, no UI imports."
 readme = "README.md"
 license = { text = "MIT" }
